@@ -1,0 +1,15 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}Сайт знакомств{% endblock %}</title>
+  </head>
+  <body>
+    {% include "bloks/navbar.html" %}
+    {% block content %}
+      <h1>Сайт знакомств</h1>
+    {% endblock %}
+  </body>
+</html>
