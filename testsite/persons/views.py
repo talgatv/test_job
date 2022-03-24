@@ -1,14 +1,28 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, logout
-from django.contrib.auth import login as auth_login
-from .forms import LoginForm, UserRegistrationForm, ProfileForm
-# from .forms import UserEditForm,
+from django.contrib.auth import authenticate, logout, login as auth_login
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import Profile
+from .forms import (
+    LoginForm,
+    UserRegistrationForm,
+    ProfileForm
+    )
 from django.http import HttpResponse
-from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.forms import AuthenticationForm
+from .serializers import (
+    ProfileSerializer,
+    ProfileCreateSerializer,
+    )
+from rest_framework import generics
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    CreateAPIView,
+    )
+from rest_framework.permissions import IsAuthenticated , AllowAny
+from .license import IsOwnerProfileOrReadOnly
 
 
 def index(request):
@@ -26,11 +40,18 @@ def registration(request):
             profile_user_form = profile_form.save(commit=False)
             profile_user_form.user = get_object_or_404(User, id = new_user.id )
             profile_user_form.save()
-            return render(request,'persons/registration_done.html',{'new_user': new_user})
+            return render(
+                request,
+                'persons/registration_done.html',
+                {'new_user': new_user}
+                )
     else:
         user_form = UserRegistrationForm()
         profile_form = ProfileForm()
-    return render(request,'persons/registration.html',{'user_form': user_form,'profile_form': profile_form})
+    return render(request,'persons/registration.html',{
+        'user_form': user_form,
+        'profile_form': profile_form
+        })
 
 
 
@@ -45,13 +66,52 @@ def login(request):
 				auth_login(request, user)
 				return redirect("index")
 			else:
-				return HttpResponse('Не верно ведён логин или пароль', content_type='text/html', charset='utf-8')
+				return HttpResponse(
+                    'Не верно ведён логин или пароль',
+                    content_type='text/html',
+                    charset='utf-8'
+                    )
 		else:
-			return HttpResponse('Не верно ведён логин или пароль', content_type='text/html', charset='utf-8')
+			return HttpResponse(
+                'Не верно ведён логин или пароль',
+                content_type='text/html',
+                charset='utf-8')
 	form = AuthenticationForm()
-	return render(request=request, template_name="persons/login.html", context={"login_form":form})
+	return render(
+        request=request,
+        template_name="persons/login.html",
+        context={"login_form":form}
+        )
 
 
 def logout_user(request):
 	logout(request)
 	return redirect("index")
+
+
+class ProfileAPIView(ListCreateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    permission_classes=[IsAuthenticated]
+
+
+class CreateAPIUser(CreateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileCreateSerializer
+    permission_classes=[AllowAny]
+
+
+class UserProfileListCreateView(ListCreateAPIView):
+    queryset=Profile.objects.all()
+    serializer_class=ProfileSerializer
+    permission_classes=[IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user=self.request.user
+        serializer.save(user=user)
+
+
+class UserProfileDetailView(RetrieveUpdateDestroyAPIView):
+    queryset=Profile.objects.all()
+    serializer_class=ProfileSerializer
+    permission_classes=[IsOwnerProfileOrReadOnly,IsAuthenticated]

@@ -1,2 +1,7 @@
 Django==3.2.12
-Pillow==8.4.0
+Pillow==9.0.1
+djangorestframework==3.11.2
+djangorestframework-simplejwt==5.1.0
+djoser
+social-auth-app-django==5.0.0
+django-filter==21.1
