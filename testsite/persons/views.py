@@ -10,12 +10,13 @@ from .forms import (
     ProfileForm
     )
 from django.http import HttpResponse
+from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from .serializers import (
     ProfileSerializer,
     ProfileCreateSerializer,
     )
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
@@ -24,6 +25,9 @@ from rest_framework.generics import (
 from rest_framework.permissions import IsAuthenticated , AllowAny
 from .license import IsOwnerProfileOrReadOnly
 
+import base64
+from io import BytesIO
+from PIL import Image
 
 def index(request):
     return render(request, 'index.html')
@@ -95,10 +99,12 @@ class ProfileAPIView(ListCreateAPIView):
     permission_classes=[IsAuthenticated]
 
 
+
 class CreateAPIUser(CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileCreateSerializer
     permission_classes=[AllowAny]
+
 
 
 class UserProfileListCreateView(ListCreateAPIView):
