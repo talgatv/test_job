@@ -3,7 +3,9 @@ from django.contrib.auth import authenticate, logout, login as auth_login
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
-from .models import Profile
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Profile, Sympathies
 from .forms import (
     LoginForm,
     UserRegistrationForm,
@@ -121,3 +123,39 @@ class UserProfileDetailView(RetrieveUpdateDestroyAPIView):
     queryset=Profile.objects.all()
     serializer_class=ProfileSerializer
     permission_classes=[IsOwnerProfileOrReadOnly,IsAuthenticated]
+
+
+
+@login_required
+def SympathieView(request,pk):
+    # if request.method == 'POST':
+
+        if User.objects.filter(id=pk).exists():
+            сute_user = User.objects.filter(id=pk).first()
+
+            if request.user.id == pk :
+                data = {'error':'Sending sympathy to yourself'}
+                return HttpResponse(data, status=status.HTTP_406_NOT_ACCEPTABLE)
+
+            elif Sympathies.objects.filter(
+                main = сute_user,
+                secondary = request.user
+                ).exists():
+                    data = {'error':'Sympathy is already worth'}
+                    return HttpResponse(data, status=status.HTTP_208_ALREADY_REPORTED)
+            else:
+                Sympathies.objects.create(main = сute_user  , secondary = request.user)
+                data = {'right':'Allowed'}
+
+                if Sympathies.objects.filter(
+                    main = request.user,
+                    secondary = сute_user
+                    ).exists():
+                        send_mail(
+                            'Вы кому-то понравились',
+                            'Вы понравились {}'.format(request.user),
+                            settings.DEFAULT_FROM_EMAIL,
+                            [сute_user.email],
+                        )
+
+                return HttpResponse(data, status=status.HTTP_202_ACCEPTED)

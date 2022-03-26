@@ -10,7 +10,7 @@ urlpatterns = [
     path("logout/", views.logout_user, name= "logout"),
     path('api/clients/all', views.ProfileAPIView.as_view(), name='profile-api'),
     path('api/clients/create', views.CreateAPIUser.as_view(), name='create-api-user'),
-
+    path('api/<int:pk>/match/', views.SympathieView, name = 'sympathie')
 
 
     ]

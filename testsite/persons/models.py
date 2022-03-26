@@ -18,3 +18,22 @@ class Profile(models.Model):
 
     def __str__(self):
         return 'User: {}'.format(self.user.username)
+
+
+class Sympathies(models.Model):
+    main = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='Cutie'
+        )
+    secondary = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='Romeo')
+
+    class Meta:
+        verbose_name = "Симпатия пользователя"
+        verbose_name_plural = "Симпатии пользователей"
+
+    def __str__(self):
+        return f'{self.main} - {self.secondary}'
